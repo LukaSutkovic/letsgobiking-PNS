@@ -1,10 +1,22 @@
-body {
-  display: grid;
-  width: 100%;
-  min-height: 100vh;
-  grid-template: auto 1fr auto / 1fr;
+* {
+  box-sizing: border-box; /* Le padding ne s'ajoute pas à la largeur/hauteur */
+  margin: 0;
+  padding: 0;
 }
 
+/* 2. Configuration du Body pour qu'il fasse exactement la taille de l'écran */
+body {
+  display: flex;
+  flex-direction: column; /* On empile Header - Main - Footer */
+  min-height: 100vh; /* Prend au minimum 100% de la hauteur de l'écran */
+  font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif; /* Exemple de police */
+}
+
+/* 3. Le Main prend tout l'espace restant */
+main {
+  flex: 1;
+  width: 100%;
+}
 site-header {
   grid-column: 1 / 3;
 }
