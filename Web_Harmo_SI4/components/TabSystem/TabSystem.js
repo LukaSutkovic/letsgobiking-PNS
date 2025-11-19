@@ -5,8 +5,8 @@ class TabSystem extends HTMLElement {
     }
 
     async loadAndAttachTemplate() {
-        const responseCSS = await fetch('../components/TabSystem/TabSystem.css');
-        const responseHTML = await fetch('../components/TabSystem/TabSystem.html');
+        const responseCSS = await fetch('/Web_Harmo_SI4/components/TabSystem/TabSystem.css');
+        const responseHTML = await fetch('/Web_Harmo_SI4/components/TabSystem/TabSystem.html');
         const styleText = await responseCSS.text();
         const htmlText = await responseHTML.text();
 

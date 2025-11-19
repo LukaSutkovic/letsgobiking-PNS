@@ -6,8 +6,8 @@ class AddressAutocomplete extends HTMLElement {
     }
 
     async loadAndAttachTemplate() {
-        const responseCSS = await fetch('../components/AdressAutoComplete/AdressAutoComplete.css');
-        const responseHTML = await fetch('../components/AdressAutoComplete/AdressAutoComplete.html');
+        const responseCSS = await fetch('/Web_Harmo_SI4/components/AdressAutoComplete/AdressAutoComplete.css');
+        const responseHTML = await fetch('/Web_Harmo_SI4/components/AdressAutoComplete/AdressAutoComplete.html');
         const styleText = await responseCSS.text();
         const htmlText = await responseHTML.text();
 

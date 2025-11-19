@@ -6,8 +6,8 @@ class SiteHeader extends HTMLElement {
     }
 
     async loadAndAttachTemplate() {
-        const responseCSS = await fetch('../components/SiteHeader/SiteHeader.css');
-        const responseHTML = await fetch('../components/SiteHeader/SiteHeader.html');
+        const responseCSS = await fetch('/Web_Harmo_SI4/components/SiteHeader/SiteHeader.css');
+        const responseHTML = await fetch('/Web_Harmo_SI4/components/SiteHeader/SiteHeader.html');
 
         // 2. On lit le contenu de ces réponses en tant que texte.
         // .text() aussi renvoie une promesse, donc on utilise 'await' à nouveau.
