@@ -18,10 +18,10 @@ namespace RoutingService.Services
 
     public class JCDecauxService
     {
-        private static readonly HttpClient _httpClient = new HttpClient();
-
-        
-        private readonly string _apiKey = "2cf243f8c91d6e37957db0ca1018835fde99bcfc";
+        private static readonly HttpClient _httpClient = new HttpClient
+        {
+            BaseAddress = new Uri("http://localhost:9001/api/") // >>> PROXY <<<
+        };
 
         /// <summary>
         /// Récupère toutes les stations pour un contrat (ville) donné.
@@ -29,7 +29,7 @@ namespace RoutingService.Services
         public async Task<List<Station>> GetStationsAsync(string contractName)
         {
             
-            string requestUrl = $"https://api.jcdecaux.com/vls/v3/stations?contract={contractName}&apiKey={_apiKey}";
+            string requestUrl = $"stations?contract={contractName}";
 
             var stationsList = new List<Station>();
 
@@ -39,16 +39,12 @@ namespace RoutingService.Services
                 HttpResponseMessage response = await _httpClient.GetAsync(requestUrl);
                 response.EnsureSuccessStatusCode();
 
-                
                 string jsonResponse = await response.Content.ReadAsStringAsync();
-
                 
                 JArray stations = JArray.Parse(jsonResponse);
-
                 
                 foreach (JObject stationData in stations)
                 {
-                    
                     Station station = new Station//creation station propre
                     {
                         Number = (int)stationData["number"],
@@ -68,8 +64,6 @@ namespace RoutingService.Services
                 Console.WriteLine($"Erreur JCDecaux : {ex.Message}");
                 
             }
-
-            
             return stationsList;
         }
     }

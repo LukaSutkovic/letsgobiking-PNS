@@ -10,11 +10,11 @@ namespace ProxyCore
     public interface IProxy
     {
         [OperationContract]
-        [WebGet(UriTemplate = "/contracts", ResponseFormat = WebMessageFormat.Json)]
+        [WebGet(UriTemplate = "contracts", ResponseFormat = WebMessageFormat.Json)]
         Task<List<Contract>> GetContracts();
 
         [OperationContract]
-        [WebGet(UriTemplate = "/stations?contract={contract}", ResponseFormat = WebMessageFormat.Json)]
+        [WebGet(UriTemplate = "stations?contract={contract}", ResponseFormat = WebMessageFormat.Json)]
         Task<List<Station>> GetStations(string contract);
     }
 }
