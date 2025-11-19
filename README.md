@@ -63,4 +63,4 @@ Si vous préférez lancer les éléments séparément :
 **1. Lancer le Serveur Backend**
 Ouvrez un terminal dans le dossier `RoutingService/RoutingService` et exécutez :
 ```bash
-dotnet run --urls="http://localhost:5132"
+dotnet run --urls="http://localhost:5173"
