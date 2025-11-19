@@ -1,17 +1,171 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Readme</title>
+    <title>À propos - LetsGoBiking</title>
     <link rel="stylesheet" href="style.css" />
+    <style>
+      /* On réduit le padding autour de la carte */
+      .about-main {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        padding: 10px; /* Réduit de 40px à 10px */
+        background: #f4f7f6;
+        /* S'assure que ça ne dépasse pas la hauteur dispo si possible */
+        overflow: hidden;
+      }
+
+      .about-card {
+        background: white;
+        padding: 30px; /* Réduit de 50px à 30px pour gagner de la place */
+        border-radius: 16px;
+        box-shadow: 0 8px 30px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 900px; /* Plus large pour que le texte prenne moins de hauteur */
+        line-height: 1.4; /* Interligne un peu plus serré */
+        color: #333;
+        font-size: 0.95rem; /* Texte légèrement plus petit */
+      }
+
+      .about-card h1 {
+        text-align: center;
+        color: #007bff;
+        margin-bottom: 15px; /* Réduit */
+        font-size: 1.8rem;
+        margin-top: 0;
+      }
+
+      .about-card h2 {
+        margin-top: 15px; /* Réduit */
+        border-bottom: 2px solid #eee;
+        padding-bottom: 5px;
+        font-size: 1.1rem; /* Titres plus discrets */
+        color: #444;
+      }
+
+      .about-card p {
+        margin-bottom: 10px;
+      }
+
+      /* On met la liste sur 2 colonnes pour gagner de la hauteur ! */
+      .about-card ul {
+        list-style-type: none;
+        padding-left: 0;
+        display: grid;
+        grid-template-columns: 1fr 1fr; /* 2 colonnes */
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .about-card li {
+        margin-bottom: 0;
+        padding-left: 25px;
+        position: relative;
+        font-size: 0.9rem;
+      }
+
+      .about-card li::before {
+        content: "🚴‍♂️";
+        position: absolute;
+        left: 0;
+        top: 2px;
+      }
+
+      .tech-stack {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 5px;
+        margin-top: 10px;
+      }
+
+      .tech-stack span {
+        display: inline-block;
+        background: #eee;
+        padding: 4px 10px;
+        border-radius: 15px;
+        font-size: 0.8rem;
+        font-weight: bold;
+        color: #555;
+      }
+
+      .footer-note {
+        text-align: center;
+        font-size: 0.8rem;
+        color: #888;
+        margin-top: 15px;
+        margin-bottom: 0;
+      }
+    </style>
   </head>
   <body>
     <div class="overlay"></div>
     <site-header></site-header>
 
+    <main class="about-main">
+      <div class="about-card">
+        <h1>À propos de LetsGoBiking</h1>
+
+        <p>
+          Bienvenue sur <strong>LetsGoBiking</strong>, votre compagnon
+          intelligent pour des trajets multimodaux urbains. Notre mission est
+          simple : vous aider à combiner marche à pied et vélos en libre-service
+          (JCDecaux) pour optimiser vos déplacements.
+        </p>
+
+        <h2>🎓 Le Projet</h2>
+        <p>
+          Cette application a été développée dans le cadre du cursus ingénieur
+          <strong>Polytech Nice-Sophia</strong> (cours Middleware & SoC).
+          L'objectif technique est de démontrer une architecture distribuée
+          robuste capable de gérer des calculs d'itinéraires complexes en temps
+          réel.
+        </p>
+
+        <h2>🛠️ Comment ça marche ?</h2>
+        <ul>
+          <li>
+            <strong>Recherchez :</strong> Entrez votre point de départ et votre
+            destination.
+          </li>
+          <li>
+            <strong>Calculez :</strong> Notre algorithme compare le temps de
+            marche vs le temps vélo.
+          </li>
+          <li>
+            <strong>Visualisez :</strong> Obtenez un itinéraire détaillé étape
+            par étape sur la carte.
+          </li>
+          <li>
+            <strong>Voyagez :</strong> Profitez d'un trajet optimisé, même entre
+            deux villes différentes !
+          </li>
+        </ul>
+
+        <h2>💻 Technologies Utilisées</h2>
+        <div class="tech-stack">
+          <span>C# .NET 8</span>
+          <span>ASP.NET Core API</span>
+          <span>JavaScript Vanilla</span>
+          <span>Web Components</span>
+          <span>Leaflet Maps</span>
+          <span>OpenRouteService API</span>
+          <span>JCDecaux API</span>
+        </div>
+
+        <br />
+        <p style="text-align: center; font-size: 0.9rem; color: #777">
+          Développé par<br />
+          <strong>Maveyraud & Sutkovic</strong> - Promo 2025-2026
+        </p>
+      </div>
+    </main>
+
     <site-footer></site-footer>
+
+    <script src="components/SiteHeader/SiteHeader.js"></script>
+    <script src="components/SiteFooter.js"></script>
   </body>
-  <script src="components/SiteHeader/SiteHeader.js"></script>
-  <script src="components/SiteFooter.js"></script>
 </html>
