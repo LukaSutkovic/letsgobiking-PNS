@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Itinéraire - Projet GPS</title>
+    <link
+      rel="stylesheet"
+      href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+    />
+    <link rel="stylesheet" href="../style.css" />
+    <link rel="stylesheet" href="itineraire.css" />
+  </head>
+  <body>
+    <div class="overlay"></div>
+    <site-header></site-header>
+
+    <main class="itinerary-page-main">
+      <aside class="itinerary-sidebar">
+        <h2>Votre Trajet</h2>
+
+        <div id="itinerary-reminder">
+          <p>Chargement de votre itinéraire...</p>
+        </div>
+
+        <hr />
+        <h3>Changer le trajet</h3>
+        <div class="reroute-inputs">
+          <address-autocomplete id="start-point-reroute"></address-autocomplete>
+          <address-autocomplete id="end-point-reroute"></address-autocomplete>
+        </div>
+      </aside>
+
+      <section class="itinerary-content">
+        <tab-system>
+          <button slot="tab" data-panel="map-panel">Carte</button>
+          <button slot="tab" data-panel="steps-panel">Étapes</button>
+
+          <div slot="panel" id="map-panel">
+            <h3>Carte de l'itinéraire</h3>
+            <div id="mapid" style="height: 500px; width: 100%"></div>
+          </div>
+
+          <div slot="panel" id="steps-panel">
+            <h3>Détail des étapes</h3>
+            <p>1. Prenez la première à droite.</p>
+            <p>2. Continuez tout droit pendant 500m.</p>
+            <p>3. Votre destination est sur la gauche.</p>
+            <p>(Contenu de remplacement)</p>
+          </div>
+        </tab-system>
+      </section>
+    </main>
+
+    <site-footer></site-footer>
+
+    <script src="../components/SiteFooter.js"></script>
+    <script src="../components/SiteHeader/SiteHeader.js"></script>
+    <script src="../components/AdressAutoComplete/AdressAutoComplete.js"></script>
+    <script src="../components/TabSystem/TabSystem.js"></script>
+    <script src="itineraire.js"></script>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  </body>
+</html>

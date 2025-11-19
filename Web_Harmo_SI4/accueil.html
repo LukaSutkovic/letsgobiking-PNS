@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Mon Itinéraire</title>
+    <link rel="stylesheet" href="style.css" />
+    <link rel="stylesheet" href="accueil.css" />
+  </head>
+  <body>
+    <div class="overlay"></div>
+    <site-header></site-header>
+
+    <main class="homepage-main">
+      <div class="search-card">
+        <h1>Où souhaitez-vous aller ?</h1>
+        <div class="inputs-container">
+          <div class="input-group">
+            <label for="start-point">Point de départ</label>
+            <address-autocomplete id="start-point"></address-autocomplete>
+          </div>
+          <div class="input-group">
+            <label for="end-point">Destination</label>
+            <address-autocomplete id="end-point"></address-autocomplete>
+          </div>
+        </div>
+        <p id="info-message">
+          Veuillez sélectionner une adresse de départ et d'arrivée.
+        </p>
+      </div>
+    </main>
+
+    <site-footer></site-footer>
+
+    <script src="components/SiteHeader/SiteHeader.js"></script>
+    <script src="components/SiteFooter.js"></script>
+    <script src="components/AdressAutoComplete/AdressAutoComplete.js"></script>
+
+    <script src="scriptjs/main.js"></script>
+  </body>
+</html>

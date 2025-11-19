@@ -1,0 +1,41 @@
+.itinerary-page-main {
+  display: grid;
+  grid-template-columns: 350px 1fr; /* Sidebar de 350px, le reste prend la place disponible */
+  gap: 30px; /* Espace entre les deux colonnes */
+  padding: 20px;
+  align-items: start; /* Aligne les colonnes en haut */
+}
+
+.itinerary-sidebar {
+  background-color: #f9f9f9;
+  padding: 25px;
+  border-radius: 12px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+}
+
+.itinerary-sidebar h2,
+.itinerary-sidebar h3 {
+  margin-top: 0;
+  color: #333;
+}
+
+#itinerary-reminder p {
+  margin: 8px 0;
+  line-height: 1.5;
+}
+#itinerary-reminder strong {
+  color: #0056b3;
+}
+
+.reroute-inputs {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* Pour les petits écrans, on passe sur une seule colonne */
+@media (max-width: 900px) {
+  .itinerary-page-main {
+    grid-template-columns: 1fr; /* Une seule colonne */
+  }
+}

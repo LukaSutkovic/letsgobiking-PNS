@@ -1,0 +1,12 @@
+# Ignorer les dossiers de compilation C#
+bin/
+obj/
+
+# Ignorer les fichiers temporaires Visual Studio
+.vs/
+*.user
+*.suo
+
+# Ignorer les fichiers systèmes
+.DS_Store
+Thumbs.db

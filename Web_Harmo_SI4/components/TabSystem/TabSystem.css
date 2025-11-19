@@ -1,0 +1,45 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.tabs-nav {
+  display: flex;
+  border-bottom: 2px solid #ddd;
+}
+
+/* Le ::slotted() est un sélecteur spécial pour styler les éléments qui viennent de l'extérieur via un <slot> */
+::slotted([slot="tab"]) {
+  padding: 15px 20px;
+  cursor: pointer;
+  background-color: #f1f1f1;
+  border: none;
+  font-size: 16px;
+  margin-right: 5px;
+  border-radius: 8px 8px 0 0;
+}
+
+::slotted([slot="tab"].active) {
+  background-color: white;
+  border: 2px solid #ddd;
+  border-bottom: 2px solid white; /* Pour donner l'impression qu'il fusionne avec le contenu */
+  font-weight: bold;
+}
+
+.tabs-content {
+  padding: 20px;
+  border: 2px solid #ddd;
+  border-top: none;
+  border-radius: 0 0 8px 8px;
+  background-color: white;
+}
+
+/* Par défaut, on cache tous les panneaux */
+::slotted([slot="panel"]) {
+  display: none;
+}
+
+/* On n'affiche que le panneau qui a la classe "active" */
+::slotted([slot="panel"].active) {
+  display: block;
+}
