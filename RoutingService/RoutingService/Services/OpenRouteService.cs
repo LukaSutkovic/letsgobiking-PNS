@@ -60,7 +60,7 @@ namespace RoutingService.Services
             string profile = "foot-walking")
         {
             
-            // On utilise "InvariantCulture" pour être sûr que le séparateur décimal est un POINT (ex: 5.369)
+            
             string startPoint = $"{start.lon.ToString(System.Globalization.CultureInfo.InvariantCulture)},{start.lat.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
             string endPoint = $"{end.lon.ToString(System.Globalization.CultureInfo.InvariantCulture)},{end.lat.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
 
@@ -84,11 +84,11 @@ namespace RoutingService.Services
             catch (Exception ex)
             {
                 Console.WriteLine($"Erreur Routing ({profile}) : {ex.Message}");
-                return -1; // On retourne -1 pour signaler une erreur
+                return -1;
             }
         }
 
-        // (DANS OpenRouteService.cs)
+        
 
         /// <summary>
         /// Récupère à la fois la DURÉE et la GÉOMÉTRIE (les points du tracé).
@@ -101,7 +101,7 @@ namespace RoutingService.Services
             string startPoint = $"{start.lon.ToString(System.Globalization.CultureInfo.InvariantCulture)},{start.lat.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
             string endPoint = $"{end.lon.ToString(System.Globalization.CultureInfo.InvariantCulture)},{end.lat.ToString(System.Globalization.CultureInfo.InvariantCulture)}";
 
-            // L'API renvoie la géométrie par défaut (format GeoJSON)
+            
             string requestUrl = $"https://api.openrouteservice.org/v2/directions/{profile}?api_key={_apiKey}&start={startPoint}&end={endPoint}";
 
             try
@@ -112,16 +112,14 @@ namespace RoutingService.Services
                 string jsonResponse = await response.Content.ReadAsStringAsync();
                 JObject data = JObject.Parse(jsonResponse);
 
-                // 1. Récupérer la durée
+                
                 double duration = (double)data["features"][0]["properties"]["summary"]["duration"];
 
-                // 2. Récupérer les coordonnées (C'est un tableau de tableaux : [[lon, lat], [lon, lat], ...])
+                
                 var coordsJson = data["features"][0]["geometry"]["coordinates"];
                 List<double[]> geometry = coordsJson.ToObject<List<double[]>>();
 
-                // PETITE ASTUCE : OpenRouteService renvoie [Long, Lat].
-                // Leaflet préfère souvent [Lat, Long], mais GeoJSON standard est [Long, Lat].
-                // On garde le standard GeoJSON [Long, Lat] pour l'instant.
+                
 
                 return (duration, geometry);
             }

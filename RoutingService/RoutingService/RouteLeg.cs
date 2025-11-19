@@ -11,15 +11,15 @@ namespace RoutingService.Services
         public double TotalSeconds { get; set; }
         public string Description { get; set; }
 
-        // NOUVEAU : La liste des points GPS pour tracer la ligne
-        // Chaque point est un tableau de 2 doubles : [longitude, latitude]
+        
+        // Chaque pt = tableau de 2 doubles : [longitude, latitude]
         public List<double[]> Geometry { get; set; }
 
         public RouteLeg(double totalSeconds, string description, List<double[]> geometry = null)
         {
             TotalSeconds = totalSeconds;
             Description = description;
-            Geometry = geometry ?? new List<double[]>(); // Si null, on met une liste vide
+            Geometry = geometry ?? new List<double[]>(); // Si null alrs on met une liste vide
         }
     }
 }

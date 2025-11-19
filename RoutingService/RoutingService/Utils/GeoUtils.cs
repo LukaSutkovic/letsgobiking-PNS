@@ -15,7 +15,7 @@ namespace RoutingService.Utils
             double startLat, double startLon,
             double endLat, double endLon)
         {
-            // Conversion des degrés en radians
+            
             double dLat = ToRadians(endLat - startLat);
             double dLon = ToRadians(endLon - startLon);
             double lat1 = ToRadians(startLat);

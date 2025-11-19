@@ -13,10 +13,10 @@ namespace RoutingService.Controllers
         [HttpGet]
         public async Task<IActionResult> GetItinerary([FromQuery] string depart, [FromQuery] string arrivee)
         {
-            // On reçoit maintenant un objet RouteLeg (avec .Description et .Geometry)
+            
             RouteLeg result = await _itineraryService.CalculateItineraryAsync(depart, arrivee);
 
-            // On renvoie "OK" avec l'objet en JSON
+            
             return Ok(result);
         }
     }
