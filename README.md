@@ -40,27 +40,22 @@ Le projet est divisé en deux parties principales :
 
 ### Prérequis
 - **.NET 8.0 SDK** (pour le serveur API).
-- **Python 3** (installé par défaut sur la plupart des machines de dev) OU **Node.js**.
-  *(Ceci est nécessaire pour simuler un serveur web local, car l'ouverture directe des fichiers HTML bloque les requêtes API).*
+- **Python 3** (création du serveur local pour le front-end)
 
 ### Méthode Automatique (Script) ⚡
 1. Double-cliquez sur le fichier **`run.bat`** à la racine.
 2. Le script va lancer :
    - Le serveur API C# (port 5173).
    - Un serveur web local Python (port 8000).
-   - Votre navigateur sur `http://localhost:8000/accueil.html`.
+   - Votre navigateur sur `http://localhost:8000/Web_Harmo_SI4/accueil.html`.
 
 ### Méthode Manuelle (VS Code) 🛠️
-Si vous préférez utiliser Visual Studio Code :
+Si vous préférez utiliser Visual Studio Code & VS2022 :
 1. Ouvrez le dossier `RoutingService` et lancez le projet C# (F5).
 2. Ouvrez le dossier `Web_Harmo_SI4`.
 3. Faites un clic droit sur `accueil.html` -> **Open with Live Server** (extension VSC)
 
-### Méthode Manuelle 🛠️
-
-Si vous préférez lancer les éléments séparément :
-
-**1. Lancer le Serveur Backend**
+**Lancer le Serveur Backend**
 Ouvrez un terminal dans le dossier `RoutingService/RoutingService` et exécutez :
 ```bash
-dotnet run --urls="http://localhost:5173"
+dotnet run --no-build --urls="http://localhost:5173"
