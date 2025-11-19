@@ -54,7 +54,7 @@ Le projet est divisé en deux parties principales :
 Si vous préférez utiliser Visual Studio Code :
 1. Ouvrez le dossier `RoutingService` et lancez le projet C# (F5).
 2. Ouvrez le dossier `Web_Harmo_SI4`.
-3. Faites un clic droit sur `accueil.html` -> **Open with Live Server**
+3. Faites un clic droit sur `accueil.html` -> **Open with Live Server** (extension VSC)
 
 ### Méthode Manuelle 🛠️
 
