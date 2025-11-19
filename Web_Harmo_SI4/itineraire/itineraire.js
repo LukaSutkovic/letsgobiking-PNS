@@ -36,7 +36,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       // B. APPEL AU SERVEUR C# (Le nouveau code)
       try {
-        stepsPanel.innerHTML = `... (ton HTML de chargement) ...`;
+        stepsPanel.innerHTML = `... chargement ...`;
 
         const labelDepart = itinerary.start.properties.label;
         const labelArrivee = itinerary.end.properties.label;
@@ -87,7 +87,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         stepsPanel.innerHTML = `
                     <h3>Oups !</h3>
                     <p style="color: red;">Impossible de récupérer l'itinéraire.</p>
-                    <p>Vérifiez que votre serveur C# est bien lancé sur le port <strong>5132</strong> (ou modifiez le port dans le fichier js).</p>
+                    <p>Vérifiez que votre serveur C# est bien lancé sur le port <strong>5000</strong> (ou modifiez le port dans le fichier js).</p>
                 `;
       }
     } else {
