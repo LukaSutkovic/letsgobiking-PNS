@@ -17,8 +17,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }).addTo(map);
 
   // --- 2. CONFIGURATION API (IMPORTANT) ---
-  // Remplace 5132 par ton port Swagger si ce n'est pas celui-là
-  const API_BASE_URL = "http://localhost:5000/api/routing";
+  const API_BASE_URL = "http://localhost:5173/api/routing";
 
   // --- 3. Récupération du LocalStorage ---
   const itineraryDataString = localStorage.getItem("itineraryData");
