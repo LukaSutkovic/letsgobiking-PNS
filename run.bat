@@ -1,5 +1,7 @@
 @echo off
 setlocal
+
+REM chemin racine du repo = dossier où se trouve ce .bat
 set ROOT=%~dp0
 
 echo ==========================================
@@ -8,77 +10,68 @@ echo ==========================================
 echo.
 
 REM ------------------------------------------
-REM ETAPE 0 : COMPILATION GLOBALE
+REM 0/3 - COMPILATION 
 REM ------------------------------------------
-echo [0/4] Nettoyage et Construction de la solution complete...
-
-REM On se place a la racine ou se trouve le .sln
+echo [0/3] Build de la solution...
 cd /d "%ROOT%"
-
-REM 1. On nettoie tout
-call dotnet clean "LetsGoBiking.sln" --verbosity quiet
-
-REM 2. On compile le projet d'un coup (Proxy, Core, Routing, etc.)
 call dotnet build "LetsGoBiking.sln" --configuration Debug
-
-REM Verification : Si la compilation echoue, on arrete tout.
 if %errorlevel% neq 0 (
-    echo.
-    echo ERREUR CRITIQUE : La compilation a echoue. Verifiez les erreurs ci-dessus.
+    echo Erreur de compilation, on stoppe.
+    pause
+    exit /b
+)
+echo.
+
+REM ------------------------------------------
+REM 1/3 - LANCEMENT DU PROXY JCDECAUX
+REM ------------------------------------------
+echo [1/3] Demarrage du Proxy JCDecaux...
+
+REM On essaye plusieurs chemins possibles
+if exist "ProxyHost\bin\Debug\net48\ProxyHost.exe" (
+    set "PROXY_EXE=%ROOT%ProxyHost\bin\Debug\net48\ProxyHost.exe"
+) else if exist "ProxyHost\bin\Debug\net472\ProxyHost.exe" (
+    set "PROXY_EXE=%ROOT%ProxyHost\bin\Debug\net472\ProxyHost.exe"
+) else (
+    set "PROXY_EXE=%ROOT%ProxyHost\bin\Debug\ProxyHost.exe"
+)
+
+if not exist "%PROXY_EXE%" (
+    echo ProxyHost.exe introuvable ^(pas de build ?^)
     pause
     exit /b
 )
 
-echo.
-echo [SUCCES] Tout a ete compile correctement. Lancement des services...
-echo.
-
-REM ------------------------------------------
-REM 1/4 - PROXY JCDECAUX (WCF)
-REM ------------------------------------------
-echo [1/4] Demarrage du Proxy JCDecaux...
-
-REM On cherche l'exécutable généré par la solution
-REM (Priorité au dossier net48 car c'est ta config)
-if exist "ProxyHost\bin\Debug\net48\ProxyHost.exe" (
-    set "PROXY_PATH=ProxyHost\bin\Debug\net48\ProxyHost.exe"
-) else if exist "ProxyHost\bin\Debug\net472\ProxyHost.exe" (
-    set "PROXY_PATH=ProxyHost\bin\Debug\net472\ProxyHost.exe"
-) else (
-    set "PROXY_PATH=ProxyHost\bin\Debug\ProxyHost.exe"
-)
-
-REM Important : On lance l'exe en definissant son dossier de travail (working directory)
-start "JCDecaux Proxy" /D "%ROOT%ProxyHost" "%ROOT%%PROXY_PATH%"
+REM definir le working directory sur bin\Debug
+start "JCDecaux Proxy" /D "%~dp0ProxyHost\bin\Debug" "%PROXY_EXE%"
 
 timeout /t 4 /nobreak >nul
 
 REM ------------------------------------------
-REM 2/4 - API ROUTING (REST)
+REM 2/3 - API ROUTING C#
 REM ------------------------------------------
-echo [2/4] Demarrage du Serveur REST...
+echo [2/3] Demarrage du Serveur REST (RoutingService)...
 cd /d "%ROOT%RoutingService\RoutingService"
-
 start "LetsGoBiking API" dotnet run --no-build --urls="http://localhost:5173"
 
 timeout /t 4 /nobreak >nul
 
 REM ------------------------------------------
-REM 3/4 - SERVEUR WEB (PYTHON)
+REM 3/3 - SERVEUR WEB STATIQUE 
 REM ------------------------------------------
-echo [3/4] Demarrage du Serveur Web...
+echo [3/3] Demarrage du Serveur Web Local...
 cd /d "%ROOT%"
 start "LetsGoBiking WebServer" python -m http.server 8000
 
 REM ------------------------------------------
-REM 4/4 - NAVIGATEUR
+REM OUVERTURE DU NAVIGATEUR
 REM ------------------------------------------
-echo [4/4] Ouverture du navigateur...
+echo Ouverture du navigateur...
 timeout /t 2 /nobreak >nul
 start http://localhost:8000/Web_Harmo_SI4/accueil.html
 
 echo.
 echo ==========================================
-echo      Tout est pret ! Enjoy !
+echo      Tout est pret !
 echo ==========================================
 pause
