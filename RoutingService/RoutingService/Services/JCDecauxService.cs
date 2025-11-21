@@ -112,8 +112,8 @@ namespace RoutingService.Services
             }
             catch (Exception ex)
             {
-                Console.WriteLine("[JCDecauxService] Erreur JCDecaux ntzth zertherghbem:");
-                Console.WriteLine(ex.ToString());   // stack trace complète
+                Console.WriteLine("[JCDecauxService] Erreur JCDecaux :");
+                Console.WriteLine(ex.ToString());
                 return new List<Station>();
             }
         }
