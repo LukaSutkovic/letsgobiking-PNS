@@ -10,10 +10,31 @@ namespace ProxyHost
     {
         static void Main()
         {
+            // 1. On définit l'adresse (localhost est plus propre avec le mode Exact)
             var baseAddress = new Uri("http://localhost:9001/api/");
+
             using (var host = new WebServiceHost(typeof(ProxyService), baseAddress))
             {
-                var ep = host.AddServiceEndpoint(typeof(IProxy), new WebHttpBinding(), "");
+                // ==============================================================
+                // LA CORRECTION EST ICI
+                // ==============================================================
+
+                // On configure le binding manuellement
+                var binding = new WebHttpBinding();
+
+                // C'est CETTE ligne qui permet d'éviter les droits d'administrateur.
+                // Elle dit à WCF de n'écouter QUE localhost et de ne pas essayer de réserver "+"
+                binding.HostNameComparisonMode = HostNameComparisonMode.Exact;
+
+                // On s'assure qu'il n'y a pas de sécurité complexe qui bloque (HTTP simple)
+                binding.Security.Mode = WebHttpSecurityMode.None;
+                binding.CrossDomainScriptAccessEnabled = true; // Utile pour les appels JS
+
+                // On applique ce binding spécifique
+                var ep = host.AddServiceEndpoint(typeof(IProxy), binding, "");
+
+                // ==============================================================
+
                 ep.EndpointBehaviors.Add(new WebHttpBehavior
                 {
                     AutomaticFormatSelectionEnabled = true,
@@ -24,13 +45,33 @@ namespace ProxyHost
                 var dbg = host.Description.Behaviors.Find<ServiceDebugBehavior>();
                 if (dbg != null) dbg.HttpHelpPageEnabled = false;
 
-                host.Open();
-                Console.WriteLine("Proxy up: http://localhost:9001/api");
-                Console.WriteLine("GET /contracts");
-                Console.WriteLine("GET /stations?contract={name}");
-                Console.WriteLine("Press ENTER to stop.");
-                Console.ReadLine();
-                host.Close();
+                try
+                {
+                    host.Open();
+                    Console.WriteLine("--------------------------------------------------");
+                    Console.WriteLine("Proxy demarre avec succes (Mode Sans Admin)");
+                    Console.WriteLine($"URL : {baseAddress}");
+                    Console.WriteLine("--------------------------------------------------");
+                    Console.WriteLine("GET /contracts");
+                    Console.WriteLine("GET /stations?contract={name}");
+                    Console.WriteLine("Appuyez sur ENTREE pour arreter.");
+                    Console.ReadLine();
+                    host.Close();
+                }
+                catch (AddressAccessDeniedException)
+                {
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine("ERREUR : Accès refusé.");
+                    Console.WriteLine("Windows bloque encore le port.");
+                    Console.WriteLine("Essayez de changer le port 9001 par 9090 ou 8080 dans le code.");
+                    Console.ResetColor();
+                    Console.ReadLine();
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur fatale : {ex.Message}");
+                    Console.ReadLine();
+                }
             }
         }
     }
