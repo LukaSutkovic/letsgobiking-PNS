@@ -1,35 +1,44 @@
-using SoapCore; // AJOUT SOAP
-using RoutingService.Services; // Pour trouver tes classes
+using SoapCore;
+using RoutingService.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 1. Ajouter les services au conteneur
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-// --- AJOUT SOAP 1 : On déclare le service ---
-builder.Services.AddSingleton<IRoutingSoapService, RoutingSoapService>();
-// ------------------------------------------
+// --- CONFIGURATION CORS (INDISPENSABLE POUR LE FRONTEND) ---
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", policy =>
+    {
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 
-// CORS (Ton code existant)
-builder.Services.AddCors(options => { /* ... */ });
+// --- CONFIGURATION SOAP (POUR LE CLIENT JAVA) ---
+builder.Services.AddSingleton<IRoutingSoapService, RoutingSoapService>();
 
 var app = builder.Build();
 
+// 2. Configurer le pipeline de requêtes HTTP
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
+// --- ACTIVER CORS (DOIT ÊTRE PLACÉ AVANT MapControllers) ---
 app.UseCors("AllowAll");
+
 app.UseAuthorization();
 
 app.MapControllers();
 
-// --- AJOUT SOAP 2 : On expose l'URL du WSDL ---
-// Le service sera accessible à : http://localhost:5132/RoutingService.asmx
+// --- ENDPOINT SOAP ---
 app.UseSoapEndpoint<IRoutingSoapService>("/RoutingService.asmx", new SoapEncoderOptions());
-// ----------------------------------------------
 
 app.Run();
