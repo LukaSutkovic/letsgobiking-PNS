@@ -1,0 +1,13 @@
+<bindings xmlns="https://jakarta.ee/xml/ns/jaxb" version="3.0" xmlns:xs="http://www.w3.org/2001/XMLSchema">
+    <!-- Ciblage du namespace "Arrays" de Microsoft -->
+    <bindings scd="x-schema::tns" xmlns:tns="http://schemas.microsoft.com/2003/10/Serialization/Arrays">
+        <!--
+            Ciblage spécifique du type complexe "ArrayOfdouble" (celui avec 'd' minuscule).
+            On le renomme "ArrayOfPrimitiveDouble" pour qu'il ne soit plus en conflit
+            avec "ArrayOfDouble" (celui avec 'D' majuscule).
+        -->
+        <bindings scd="~tns:ArrayOfdouble">
+            <class name="ArrayOfPrimitiveDouble"/>
+        </bindings>
+    </bindings>
+</bindings>

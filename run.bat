@@ -10,6 +10,7 @@ echo ==========================================
 echo.
 
 REM ------------------------------------------
+<<<<<<< HEAD
 REM 0/3 - NETTOYAGE (IMPORTANT POUR LE FRONT)
 REM ------------------------------------------
 echo [Nettoyage] Fermeture des anciens serveurs...
@@ -22,6 +23,11 @@ REM ------------------------------------------
 REM 1/3 - COMPILATION 
 REM ------------------------------------------
 echo [1/3] Build de la solution...
+=======
+REM 0/3 - COMPILATION 
+REM ------------------------------------------
+echo [0/3] Build de la solution...
+>>>>>>> e51141041042421f64460e232c51f505375363c0
 cd /d "%ROOT%"
 call dotnet build "LetsGoBiking.sln" --configuration Debug
 if %errorlevel% neq 0 (
@@ -32,9 +38,15 @@ if %errorlevel% neq 0 (
 echo.
 
 REM ------------------------------------------
+<<<<<<< HEAD
 REM 2/3 - LANCEMENT DU PROXY JCDECAUX
 REM ------------------------------------------
 echo [2/3] Demarrage du Proxy JCDecaux...
+=======
+REM 1/3 - LANCEMENT DU PROXY JCDECAUX
+REM ------------------------------------------
+echo [1/3] Demarrage du Proxy JCDecaux...
+>>>>>>> e51141041042421f64460e232c51f505375363c0
 
 REM On essaye plusieurs chemins possibles
 if exist "ProxyHost\bin\Debug\net48\ProxyHost.exe" (
@@ -51,6 +63,7 @@ if not exist "%PROXY_EXE%" (
     exit /b
 )
 
+<<<<<<< HEAD
 REM definir le working directory sur bin\Debug pour qu'il trouve ses fichiers de config
 start "JCDecaux Proxy" /D "%~dp0ProxyHost\bin\Debug" "%PROXY_EXE%"
 
@@ -63,14 +76,32 @@ REM ------------------------------------------
 echo [3/3] Demarrage du Serveur REST (RoutingService)...
 cd /d "%ROOT%RoutingService\RoutingService"
 REM On lance sur le port 5173 comme demande
+=======
+REM definir le working directory sur bin\Debug
+start "JCDecaux Proxy" /D "%~dp0ProxyHost\bin\Debug" "%PROXY_EXE%"
+
+timeout /t 4 /nobreak >nul
+
+REM ------------------------------------------
+REM 2/3 - API ROUTING C#
+REM ------------------------------------------
+echo [2/3] Demarrage du Serveur REST (RoutingService)...
+cd /d "%ROOT%RoutingService\RoutingService"
+>>>>>>> e51141041042421f64460e232c51f505375363c0
 start "LetsGoBiking API" dotnet run --no-build --urls="http://localhost:5173"
 
 timeout /t 4 /nobreak >nul
 
 REM ------------------------------------------
+<<<<<<< HEAD
 REM 4/3 - SERVEUR WEB STATIQUE 
 REM ------------------------------------------
 echo [4/3] Demarrage du Serveur Web Local...
+=======
+REM 3/3 - SERVEUR WEB STATIQUE 
+REM ------------------------------------------
+echo [3/3] Demarrage du Serveur Web Local...
+>>>>>>> e51141041042421f64460e232c51f505375363c0
 cd /d "%ROOT%"
 REM Le serveur Python servira les fichiers frais
 start "LetsGoBiking WebServer" python -m http.server 8000
@@ -85,7 +116,10 @@ start http://localhost:8000/Web_Harmo_SI4/accueil.html
 echo.
 echo ==========================================
 echo      Tout est pret !
+<<<<<<< HEAD
 echo      ASTUCE : Fais CTRL+F5 sur la page web
 echo      pour vider le cache du navigateur.
+=======
+>>>>>>> e51141041042421f64460e232c51f505375363c0
 echo ==========================================
 pause

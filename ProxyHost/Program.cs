@@ -14,7 +14,11 @@ namespace ProxyHost
 
             using (var host = new WebServiceHost(typeof(ProxyService), baseAddress))
             {
+<<<<<<< HEAD
                
+=======
+                // On configure le binding manuellement
+>>>>>>> e51141041042421f64460e232c51f505375363c0
                 var binding = new WebHttpBinding();
 
                 binding.HostNameComparisonMode = HostNameComparisonMode.Exact;
@@ -54,7 +58,7 @@ namespace ProxyHost
                     Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine("ERREUR : Accès refusé.");
                     Console.WriteLine("Windows bloque encore le port.");
-                    Console.WriteLine("Essayez de changer le port 9001 par 9090 ou 8080 dans le code.");
+                    Console.WriteLine("Essayez de changer le port.");
                     Console.ResetColor();
                     Console.ReadLine();
                 }
