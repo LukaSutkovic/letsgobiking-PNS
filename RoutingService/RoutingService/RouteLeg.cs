@@ -1,25 +1,29 @@
 ﻿using System.Collections.Generic;
+using System.Runtime.Serialization;
 
 namespace RoutingService.Services
 {
-    /// <summary>
-    /// Représente une "étape" (Leg) d'un itinéraire.
-    /// Contient le temps, la description ET la géométrie (les points GPS).
-    /// </summary>
+    [DataContract]
     public class RouteLeg
     {
+        [DataMember]
         public double TotalSeconds { get; set; }
+
+        [DataMember]
         public string Description { get; set; }
 
-        // NOUVEAU : La liste des points GPS pour tracer la ligne
-        // Chaque point est un tableau de 2 doubles : [longitude, latitude]
-        public List<double[]> Geometry { get; set; }
+        // CHANGEMENT ICI : On utilise un tableau de tableaux (double[][])
+        // C'est beaucoup plus robuste pour la sérialisation SOAP qu'une List<double[]>
+        [DataMember]
+        public double[][] Geometry { get; set; }
 
-        public RouteLeg(double totalSeconds, string description, List<double[]> geometry = null)
+        public RouteLeg() { }
+
+        public RouteLeg(double totalSeconds, string description, double[][] geometry = null)
         {
             TotalSeconds = totalSeconds;
             Description = description;
-            Geometry = geometry ?? new List<double[]>(); // Si null, on met une liste vide
+            Geometry = geometry ?? new double[0][];
         }
     }
 }

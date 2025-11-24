@@ -38,7 +38,7 @@ namespace ProxyCore
             var key = $"stations::{contract.ToLowerInvariant()}";
             return _cache.GetOrCreateAsync(
                 key,
-                TimeSpan.FromMinutes(1),
+                TimeSpan.FromMinutes(30),
                 () => HttpJson.GetAsync<List<Station>>(
                     _http, $"stations?contract={Uri.EscapeDataString(contract)}&apiKey={Uri.EscapeDataString(_apiKey)}")
             );

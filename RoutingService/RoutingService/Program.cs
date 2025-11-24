@@ -1,25 +1,21 @@
+using SoapCore; // AJOUT SOAP
+using RoutingService.Services; // Pour trouver tes classes
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-
 builder.Services.AddControllers();
-// Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
+// --- AJOUT SOAP 1 : On déclare le service ---
+builder.Services.AddSingleton<IRoutingSoapService, RoutingSoapService>();
+// ------------------------------------------
+
+// CORS (Ton code existant)
+builder.Services.AddCors(options => { /* ... */ });
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();
@@ -27,9 +23,13 @@ if (app.Environment.IsDevelopment())
 }
 
 app.UseCors("AllowAll");
-
 app.UseAuthorization();
 
 app.MapControllers();
+
+// --- AJOUT SOAP 2 : On expose l'URL du WSDL ---
+// Le service sera accessible à : http://localhost:5132/RoutingService.asmx
+app.UseSoapEndpoint<IRoutingSoapService>("/RoutingService.asmx", new SoapEncoderOptions());
+// ----------------------------------------------
 
 app.Run();

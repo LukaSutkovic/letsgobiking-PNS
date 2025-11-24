@@ -1,4 +1,4 @@
-﻿using RoutingService.Services; // N'oublie pas d'importer tes services
+﻿using RoutingService.Services;
 using RoutingService.Utils;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,17 +8,8 @@ namespace RoutingService.Services
 {
     public class ItineraryService
     {
-        // Notre nouveau service a besoin des "anciens" pour travailler
         private readonly OpenRouteService _orsService = new OpenRouteService();
         private readonly JCDecauxService _jcdService = new JCDecauxService();
-
-        // (DANS LA CLASSE ItineraryService)
-
-        /// <summary>
-        /// C'est la méthode "chef d'orchestre".
-        /// Elle gère maintenant la logique [Légale].
-        /// </summary>
-        // (DANS ItineraryService.cs)
 
         public async Task<RouteLeg> CalculateItineraryAsync(string depart, string arrivee)
         {
@@ -55,7 +46,8 @@ namespace RoutingService.Services
                 if (stationsDepart.Count == 0 || stationsArrivee.Count == 0)
                 {
                     string msg = $"[Solution : Marche 🚶] (Pas de stations)\nDe: {contractDepart} | Vers: {contractArrivee}\nTemps total : {walkData.duration / 60:F1} minutes.";
-                    return new RouteLeg(walkData.duration, msg, walkData.geometry);
+                    // CORRECTION : .ToArray()
+                    return new RouteLeg(walkData.duration, msg, walkData.geometry.ToArray());
                 }
 
                 Station exitStation = stationsDepart
@@ -68,10 +60,11 @@ namespace RoutingService.Services
 
                 if (exitStation == null || entryStation == null)
                 {
-                    return new RouteLeg(walkData.duration, $"[Solution : Marche 🚶] (Erreur stations)\nTemps total : {walkData.duration / 60:F1} min.", walkData.geometry);
+                    // CORRECTION : .ToArray()
+                    return new RouteLeg(walkData.duration, $"[Solution : Marche 🚶] (Erreur stations)\nTemps total : {walkData.duration / 60:F1} min.", walkData.geometry.ToArray());
                 }
 
-                // --- CALCUL DES 3 SEGMENTS (AVEC GÉOMÉTRIE) ---
+                // --- CALCUL DES 3 SEGMENTS ---
 
                 // Segment 1 : Départ -> Sortie
                 RouteLeg leg1 = await CalculateBestTimeInContractAsync(
@@ -79,7 +72,7 @@ namespace RoutingService.Services
                     (exitStation.Longitude, exitStation.Latitude),
                     stationsDepart, "Départ", $"Sortie {contractDepart}");
 
-                // Segment 2 : Marche Inter-Villes (UTILISER GetRouteDataAsync !)
+                // Segment 2 : Marche Inter-Villes
                 var leg2Data = await _orsService.GetRouteDataAsync(
                     (exitStation.Longitude, exitStation.Latitude),
                     (entryStation.Longitude, entryStation.Latitude),
@@ -93,8 +86,9 @@ namespace RoutingService.Services
 
                 double totalLegalSec = leg1.TotalSeconds + leg2Data.duration + leg3.TotalSeconds;
 
-                // Fusionner les 3 géométries
+                // Fusionner les 3 géométries (Conversion List -> Array)
                 List<double[]> fullGeometry = new List<double[]>();
+                // Attention : leg1.Geometry est déjà un tableau double[][], on doit l'ajouter tel quel
                 fullGeometry.AddRange(leg1.Geometry);
                 fullGeometry.AddRange(leg2Data.geometry);
                 fullGeometry.AddRange(leg3.Geometry);
@@ -106,17 +100,17 @@ namespace RoutingService.Services
                     result += $"--- Partie 2 ---\nMarche inter-villes ({leg2Data.duration / 60:F1} min)\n";
                     result += "--- Partie 3 ---\n" + leg3.Description;
 
-                    return new RouteLeg(totalLegalSec, result, fullGeometry);
+                    // CORRECTION : .ToArray()
+                    return new RouteLeg(totalLegalSec, result, fullGeometry.ToArray());
                 }
                 else
                 {
                     string msg = $"[Solution : Marche 🚶] (Plus rapide)\nTemps total : {walkData.duration / 60:F1} min.";
-                    return new RouteLeg(walkData.duration, msg, walkData.geometry);
+                    // CORRECTION : .ToArray()
+                    return new RouteLeg(walkData.duration, msg, walkData.geometry.ToArray());
                 }
             }
         }
-
-        // (DANS ItineraryService.cs)
 
         private async Task<RouteLeg> CalculateBestTimeInContractAsync(
             (double lon, double lat) startPoint,
@@ -125,18 +119,17 @@ namespace RoutingService.Services
             string startLocationName = "Point de départ",
             string endLocationName = "Destination")
         {
-            // 1. Calculer la référence : 100% à pied (AVEC GÉOMÉTRIE)
+            // 1. Calculer la référence : 100% à pied
             var walkData = await _orsService.GetRouteDataAsync(startPoint, endPoint, "foot-walking");
             double walkingDurationSec = walkData.duration;
 
-            // Cas "Marche obligatoire" (pas de stations ou erreur)
             if (stationsInContract == null || stationsInContract.Count == 0)
             {
                 string desc = $"[Marche 🚶] (Pas de stations) Temps total : {walkingDurationSec / 60:F1} minutes.";
-                return new RouteLeg(walkingDurationSec, desc, walkData.geometry);
+                // CORRECTION : .ToArray()
+                return new RouteLeg(walkingDurationSec, desc, walkData.geometry.ToArray());
             }
 
-            // 2. Trouver les stations (Identique à avant)
             Station startStation = stationsInContract
                 .Where(s => s.AvailableBikes > 0)
                 .OrderBy(s => GeoUtils.GetDistance(startPoint.lat, startPoint.lon, s.Latitude, s.Longitude))
@@ -150,76 +143,49 @@ namespace RoutingService.Services
             if (startStation == null || endStation == null)
             {
                 string desc = $"[Marche 🚶] (Pas de vélos/places) Temps total : {walkingDurationSec / 60:F1} minutes.";
-                return new RouteLeg(walkingDurationSec, desc, walkData.geometry);
+                // CORRECTION : .ToArray()
+                return new RouteLeg(walkingDurationSec, desc, walkData.geometry.ToArray());
             }
 
-            // 3. Calculer le temps total à vélo (3 segments AVEC GÉOMÉTRIE)
-
-            // Marche 1
+            // 3. Calculer le temps total à vélo
             var leg1 = await _orsService.GetRouteDataAsync(
                 startPoint, (startStation.Longitude, startStation.Latitude), "foot-walking");
 
-            // Vélo
             var leg2 = await _orsService.GetRouteDataAsync(
                 (startStation.Longitude, startStation.Latitude), (endStation.Longitude, endStation.Latitude), "cycling-regular");
 
-            // Marche 2
             var leg3 = await _orsService.GetRouteDataAsync(
                 (endStation.Longitude, endStation.Latitude), endPoint, "foot-walking");
 
             double bikeTotalDurationSec = leg1.duration + leg2.duration + leg3.duration;
 
-            // 4. Fusionner les géométries (Mettre les listes bout à bout)
             List<double[]> fullBikeGeometry = new List<double[]>();
             fullBikeGeometry.AddRange(leg1.geometry);
             fullBikeGeometry.AddRange(leg2.geometry);
             fullBikeGeometry.AddRange(leg3.geometry);
 
-            // 5. Comparer
             double walkingMinutes = walkingDurationSec / 60;
             double bikeMinutes = bikeTotalDurationSec / 60;
 
             if (bikeTotalDurationSec < walkingDurationSec)
             {
-                // Vélo gagne
                 string desc = $"[Vélo 🚴‍♂️] (Temps total: {bikeMinutes:F1} min)\n";
                 desc += $"1. Marchez ({startLocationName} -> '{startStation.Name}') ({leg1.duration / 60:F1} min)\n";
                 desc += $"2. Roulez ('{startStation.Name}' -> '{endStation.Name}') ({leg2.duration / 60:F1} min)\n";
                 desc += $"3. Marchez ('{endStation.Name}' -> {endLocationName}) ({leg3.duration / 60:F1} min)\n";
                 desc += $"(Alternative à pied : {walkingMinutes:F1} min)";
 
-                return new RouteLeg(bikeTotalDurationSec, desc, fullBikeGeometry);
+                // CORRECTION : .ToArray()
+                return new RouteLeg(bikeTotalDurationSec, desc, fullBikeGeometry.ToArray());
             }
             else
             {
-                // Marche gagne
                 string desc = $"[Marche 🚶] ({startLocationName} -> {endLocationName}) (Temps total: {walkingMinutes:F1} min)\n";
                 desc += $"(L'itinéraire à vélo prendrait {bikeMinutes:F1} min)";
 
-                return new RouteLeg(walkingDurationSec, desc, walkData.geometry);
+                // CORRECTION : .ToArray()
+                return new RouteLeg(walkingDurationSec, desc, walkData.geometry.ToArray());
             }
-        }
-
-        // (DANS LA CLASSE ItineraryService)
-
-        /// <summary>
-        /// Ancienne méthode, renvoie juste la description.
-        /// Appelle la nouvelle "super-fonction".
-        /// </summary>
-        private async Task<string> FindBestRouteInContractAsync(
-            (double lon, double lat) startPoint,
-            (double lon, double lat) endPoint,
-            List<Station> stationsInContract)
-        {
-            // On appelle la nouvelle fonction et on ne retourne que la partie "Description"
-            RouteLeg leg = await CalculateBestTimeInContractAsync(
-                startPoint,
-                endPoint,
-                stationsInContract,
-                "Point de départ", // On garde les noms génériques
-                "Destination");
-
-            return leg.Description;
         }
     }
 }
