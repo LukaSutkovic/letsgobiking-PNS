@@ -37,8 +37,26 @@
           <button slot="tab" data-panel="steps-panel">Étapes</button>
 
           <div slot="panel" id="map-panel">
-            <h3>Carte de l'itinéraire</h3>
-            <div id="mapid" style="height: 500px; width: 100%"></div>
+            <h3>Carte de l'itinéraire !</h3>
+            <div id="mapid" style="height: 500px; width: 100%; position: relative;"></div>
+            <!-- Panneau de notifications par-dessus la carte -->
+            <div id="notifications-panel">
+              <h4>Notifications temps réel</h4>
+              <label>
+                <input type="checkbox" class="notif-topic" data-topic="meteo" checked>
+                Météo
+              </label>
+              <label>
+                <input type="checkbox" class="notif-topic" data-topic="pollution" checked>
+                Pollution
+              </label>
+              <label>
+                <input type="checkbox" class="notif-topic" data-topic="airquality" checked>
+                Qualité de l'air
+              </label>
+
+              <div id="notifications-stream"></div>
+            </div>
           </div>
 
           <div slot="panel" id="steps-panel">
@@ -58,7 +76,15 @@
     <script src="../components/SiteHeader/SiteHeader.js"></script>
     <script src="../components/AdressAutoComplete/AdressAutoComplete.js"></script>
     <script src="../components/TabSystem/TabSystem.js"></script>
-    <script src="itineraire.js"></script>
+
+    <!-- Leaflet avant ton JS d'itinéraire -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <!-- Ton code d’itinéraire qui crée window.map -->
+    <script src="itineraire.js"></script>
+
+    <!-- notifications -->
+    <script src="https://cdn.jsdelivr.net/npm/stompjs@2.3.3/lib/stomp.min.js"></script>
+    <script src="../weather/notifications.js"></script>
   </body>
 </html>

@@ -1,26 +1,24 @@
-// js/notifications.js
+// weather/notifications.js
 
 let stompClient = null;
 const activeSubscriptions = new Map(); // topicName -> subscription object
 
+// on garde ça si tu veux encore afficher les notifs sous forme de liste
+// dans #notifications-stream
+
 function connectToBroker() {
-  // URL à ADAPTER selon la config ActiveMQ STOMP / WebSocket
-  // Exemples possibles :
-  //   ws://localhost:61614/stomp
-  //   ws://localhost:61614
-  // Cf. code fourni par le prof.
-  const socket = new WebSocket("ws://localhost:61614/stomp");
+  const socket = new WebSocket("ws://localhost:61614/stomp", "stomp");
 
   stompClient = Stomp.over(socket);
-  stompClient.debug = () => {}; // désactive les logs STOMP si tu veux
-
+  stompClient.debug = () => {};
   stompClient.connect(
-    "admin", // user
-    "admin", // pass
+    "admin",
+    "admin",
     onConnected,
     onError
   );
 }
+
 
 function onConnected() {
   console.log("[NotifFront] Connecté au broker STOMP");
@@ -29,7 +27,6 @@ function onConnected() {
 
 function onError(error) {
   console.error("[NotifFront] Erreur STOMP:", error);
-  // éventuellement tenter un reconnect après un timeout
 }
 
 function setupTopicCheckboxes() {
@@ -44,7 +41,6 @@ function setupTopicCheckboxes() {
       }
     });
 
-    // abonnement initial si déjà coché
     if (cb.checked) {
       subscribeTopic(cb.dataset.topic);
     }
@@ -61,21 +57,20 @@ function subscribeTopic(topicName) {
     return; // déjà abonné
   }
 
-  // côté ActiveMQ, ton producteur envoie sur "meteo","pollution", etc.
-  // côté STOMP / JS, selon config, ce sera souvent "/topic/meteo", "/topic/pollution", ...
   const destination = "/topic/" + topicName;
 
   const sub = stompClient.subscribe(destination, (msg) => {
     try {
       const payload = JSON.parse(msg.body);
       displayNotification(payload);
+      updateMapOverlay(payload);
     } catch (e) {
       console.error("[NotifFront] Erreur parsing message:", e, msg.body);
     }
   });
 
   activeSubscriptions.set(topicName, sub);
-  console.log("[NotifFront] Abonne au topic:", destination);
+  console.log("[NotifFront] Abonné au topic:", destination);
 }
 
 function unsubscribeTopic(topicName) {
@@ -83,7 +78,7 @@ function unsubscribeTopic(topicName) {
   if (sub) {
     sub.unsubscribe();
     activeSubscriptions.delete(topicName);
-    console.log("[NotifFront] Desabonne du topic:", topicName);
+    console.log("[NotifFront] Désabonné du topic:", topicName);
   }
 }
 
@@ -91,21 +86,146 @@ function displayNotification(payload) {
   const container = document.getElementById("notifications-stream");
   if (!container) return;
 
+  const severity = (payload.severity || "LOW").toUpperCase();
+
   const div = document.createElement("div");
-  div.className = "notif notif-" + (payload.severity || "LOW").toLowerCase();
+  div.className = "notif notif-" + severity.toLowerCase();
 
   div.innerHTML = `
     <div class="notif-header">
       <span class="notif-topic">${payload.topic}</span>
-      <span class="notif-severity">${payload.severity}</span>
+      <span class="notif-severity">${severity}</span>
       <span class="notif-time">${payload.timestamp || ""}</span>
     </div>
     <div class="notif-message">${payload.message}</div>
   `;
 
-  container.prepend(div); // dernier message en haut
+  container.prepend(div);
+}
 
-  // tu peux aussi afficher une icône globale rouge/orange/verte ailleurs dans l'UI
+/* ============================
+   OVERLAYS LEAFLET SUR LA MAP
+   ============================ */
+
+let meteoMarker = null;
+let airQualityCircle = null;
+let pollutionCircle = null;
+
+function updateMapOverlay(payload) {
+  if (!window.map || typeof L === "undefined") {
+    // pas sur la page avec carte
+    return;
+  }
+
+  const topic = payload.topic;
+  const severity = (payload.severity || "LOW").toUpperCase();
+  const center = window.map.getCenter();
+
+  if (topic === "meteo") {
+    updateMeteoMarker(center, severity);
+  } else if (topic === "airquality") {
+    updateAirQualityCircle(center, severity);
+  } else if (topic === "pollution") {
+    updatePollutionCircle(center, severity);
+  }
+}
+
+// météo → icône soleil / nuage / pluie
+function updateMeteoMarker(center, severity) {
+  let iconChar;
+  switch (severity) {
+    case "HIGH":
+      iconChar = "🌧"; // grosse pluie
+      break;
+    case "MEDIUM":
+      iconChar = "⛅"; // nuageux
+      break;
+    default:
+      iconChar = "☀️"; // soleil
+      break;
+  }
+
+  const icon = L.divIcon({
+    className: "meteo-icon",
+    html: `<span style="font-size: 24px;">${iconChar}</span>`,
+    iconSize: [30, 30],
+    iconAnchor: [15, 15]
+  });
+
+  if (meteoMarker) {
+    meteoMarker.setLatLng(center);
+    meteoMarker.setIcon(icon);
+  } else {
+    meteoMarker = L.marker(center, { icon }).addTo(window.map);
+  }
+}
+
+// qualité de l'air → cercle coloré vert / orange / rouge
+function updateAirQualityCircle(center, severity) {
+  let color;
+  switch (severity) {
+    case "HIGH":
+      color = "#c0392b"; // rouge
+      break;
+    case "MEDIUM":
+      color = "#e67e22"; // orange
+      break;
+    default:
+      color = "#27ae60"; // vert
+      break;
+  }
+
+  const radius = 1500; // en mètres, adapte si tu veux
+
+  if (airQualityCircle) {
+    airQualityCircle.setLatLng(center);
+    airQualityCircle.setStyle({
+      color,
+      fillColor: color
+    });
+    airQualityCircle.setRadius(radius);
+  } else {
+    airQualityCircle = L.circle(center, {
+      radius,
+      color,
+      fillColor: color,
+      fillOpacity: 0.25
+    }).addTo(window.map);
+  }
+}
+
+// pollution → autre cercle autour (plus grand)
+function updatePollutionCircle(center, severity) {
+  let color;
+  switch (severity) {
+    case "HIGH":
+      color = "#8e44ad"; // violet foncé
+      break;
+    case "MEDIUM":
+      color = "#9b59b6";
+      break;
+    default:
+      color = "#bdc3c7";
+      break;
+  }
+
+  const radius = 2500;
+
+  if (pollutionCircle) {
+    pollutionCircle.setLatLng(center);
+    pollutionCircle.setStyle({
+      color,
+      fillColor: color
+    });
+    pollutionCircle.setRadius(radius);
+  } else {
+    pollutionCircle = L.circle(center, {
+      radius,
+      color,
+      fillColor: color,
+      fillOpacity: 0.2
+    }).addTo(window.map);
+  }
 }
 
 // démarrage

@@ -12,12 +12,11 @@ namespace NotifService
         {
             Console.WriteLine("[NotifService] Demarrage du service de notifications...");
 
-            // À adapter selon la config ActiveMQ du prof
-            string brokerUri = "activemq:tcp://localhost:61616";
+            // ActiveMQ "classique" sur 61616
+            string brokerUri = "tcp://localhost:61616";
             string username = "admin";
             string password = "admin";
 
-            // Topics utilisés
             string[] topics = new[]
             {
                 "meteo",
@@ -25,14 +24,14 @@ namespace NotifService
                 "airquality"
             };
 
+            // ICI : ConnectionFactory concrète de Apache.NMS.ActiveMQ 1.7.x
             IConnectionFactory factory = new ConnectionFactory(brokerUri);
 
-            using var connection = factory.CreateConnection(username, password);
+            using IConnection connection = factory.CreateConnection(username, password);
             connection.Start();
 
-            using var session = connection.CreateSession(AcknowledgementMode.AutoAcknowledge);
+            using ISession session = connection.CreateSession(AcknowledgementMode.AutoAcknowledge);
 
-            // On garde un producteur par topic
             var producers = new (string topicName, IMessageProducer producer)[topics.Length];
             for (int i = 0; i < topics.Length; i++)
             {
@@ -45,7 +44,6 @@ namespace NotifService
 
             while (true)
             {
-                // On choisit un topic au hasard
                 var (topicName, producer) = producers[rand.Next(producers.Length)];
 
                 var payload = new
@@ -59,7 +57,6 @@ namespace NotifService
                 string json = JsonSerializer.Serialize(payload);
                 ITextMessage msg = session.CreateTextMessage(json);
 
-                // facultatif : entêtes pour filtrage côté client
                 msg.Properties["topic"] = topicName;
                 msg.Properties["severity"] = payload.severity;
 
@@ -67,7 +64,6 @@ namespace NotifService
 
                 Console.WriteLine($"[NotifService] Sent to '{topicName}': {json}");
 
-                // On flood un peu pour la démo → tous les 5s
                 Thread.Sleep(TimeSpan.FromSeconds(5));
             }
         }

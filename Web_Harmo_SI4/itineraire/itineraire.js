@@ -10,6 +10,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // On la centre sur Lyon ([45.76, 4.83]) avec un zoom de 13 pour tester
   const map = L.map("mapid").setView([45.76, 4.83], 13);
 
+  window.map = map;
   // On ajoute les "tuiles" (le fond de carte) OpenStreetMap
   L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
     attribution:
@@ -86,12 +87,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         stepsPanel.innerHTML = `
                     <h3>Oups !</h3>
                     <p style="color: red;">Impossible de récupérer l'itinéraire.</p>
-<<<<<<< HEAD
                     <p>Vérifiez que votre serveur C# est bien lancé sur le port <strong>5173</strong> (ou modifiez le port dans le fichier js).</p>
-=======
-                    <p>Vérifiez que votre serveur C# est bien lancé sur <strong>${API_BASE_URL}</strong>.</p>
->>>>>>> e51141041042421f64460e232c51f505375363c0
-                `;
+                    <p>Vérifiez que votre serveur C# est bien lancé sur <strong>${API_BASE_URL}</strong>.</p>`;
       }
     } else {
       reminderDiv.innerHTML = `<p>Les données de l'itinéraire sont incomplètes.</p>`;
