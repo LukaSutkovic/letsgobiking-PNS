@@ -48,11 +48,19 @@
                     <packageName>com.soap.ws.client.generated</packageName>
                     <sourceDestDir>${project.build.directory}/generated-sources/wsimport</sourceDestDir>
                     <extension>true</extension>
-                    <!-- Le binding est crucial ici -->
                     <bindingDirectory>${project.basedir}/src/main/resources</bindingDirectory>
                     <bindingFiles>
                         <bindingFile>binding.xml</bindingFile>
                     </bindingFiles>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <configuration>
+                    <mainClass>com.soc.testwsclient.App</mainClass>
                 </configuration>
             </plugin>
         </plugins>

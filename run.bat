@@ -114,24 +114,9 @@ echo.
 echo [6/7] Lancement du Client Java...
 cd /d "%ROOT%HeavyClientJava"
 
-echo Compilation Maven...
-call mvn -q clean package
+echo Lancement direct via Maven...
 
-echo Recherche du JAR...
-set "JAR_FOUND="
-if exist "target\*.jar" (
-    for %%f in (target\*.jar) do (
-        set "JAR_FOUND=%%f"
-    )
-)
-
-if defined JAR_FOUND (
-    echo Lancement de : !JAR_FOUND!
-    start "HeavyClient Java" java -jar "!JAR_FOUND!"
-) else (
-    echo [AVERTISSEMENT] Aucun JAR trouve, essai via mvn exec...
-    start "HeavyClient Java" mvn exec:java
-)
+start "HeavyClient Java" cmd /k "mvn clean compile exec:java"
 
 cd /d "%ROOT%"
 
