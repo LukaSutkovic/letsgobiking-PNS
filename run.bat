@@ -45,22 +45,41 @@ REM ------------------------------------------------------------
 REM 2/7 - LANCEMENT ACTIVEMQ
 REM ------------------------------------------------------------
 echo.
-echo [2/7] Demarrage d'ActiveMQ...
+REM ====== Option 1 : ActiveMQ dans repo ======
+set "AMQ_DIR1=apache-activemq-5.19.1-bin\apache-activemq-5.19.1\bin"
+set "AMQ_PATH1=%ROOT%%AMQ_DIR1%"
 
-REM Adapte ce dossier si besoin. Ne mets pas de slash a la fin.
-set "AMQ_DIR=apache-activemq-5.19.1-bin\apache-activemq-5.19.1\bin"
-set "AMQ_FULLPATH=%ROOT%%AMQ_DIR%"
+REM ====== Option 2 : ActiveMQ dans repo ======
+set "AMQ_PATH2=C:\Users\jeual\Documents\Projet\C\LetsGoBiking\apache-activemq-5.18.7\bin"
 
-if exist "%AMQ_FULLPATH%\activemq.bat" (
-    echo Lancement depuis : "%AMQ_FULLPATH%"
-    start "ActiveMQ Broker" /D "%AMQ_FULLPATH%" activemq start
+REM ===== Test du premier chemin =====
+if exist "%AMQ_PATH1%\activemq.bat" (
+    echo ActiveMQ trouve dans ton repo :
+    echo   "%AMQ_PATH1%"
+    start "ActiveMQ Broker" /D "%AMQ_PATH1%" activemq start
     echo ... ActiveMQ demarre, attente de 10s ...
     timeout /t 10 /nobreak >nul
-) else (
-    echo [AVERTISSEMENT] ActiveMQ introuvable ici : "%AMQ_FULLPATH%"
-    echo Les notifications ne marcheront pas, mais on continue.
-    pause
+    goto amq_done
 )
+
+REM ===== Test du deuxieme chemin =====
+if exist "%AMQ_PATH2%\activemq.bat" (
+    echo ActiveMQ trouve dans Program Files :
+    echo   "%AMQ_PATH2%"
+    start "ActiveMQ Broker" /D "%AMQ_PATH2%" activemq start
+    echo ... ActiveMQ demarre, attente de 10s ...
+    timeout /t 10 /nobreak >nul
+    goto amq_done
+)
+
+REM ===== Aucun ActiveMQ trouve =====
+echo [AVERTISSEMENT] ActiveMQ introuvable dans :
+echo   - %AMQ_PATH1%
+echo   - %AMQ_PATH2%
+echo Les notifications NE fonctionneront PAS.
+pause
+
+:amq_done
 
 REM ------------------------------------------------------------
 REM 3/7 - LANCEMENT PROXY JCDECAUX
