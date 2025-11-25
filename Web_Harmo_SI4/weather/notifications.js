@@ -1,63 +1,73 @@
-// weather/notifications.js
-
 let stompClient = null;
-const activeSubscriptions = new Map(); // topicName -> subscription object
+const activeSubscriptions = new Map();
 
-// on garde ça si tu veux encore afficher les notifs sous forme de liste
-// dans #notifications-stream
+// Lancement automatique à la fin du chargement
+document.addEventListener("DOMContentLoaded", () => {
+  connectToBroker();
+});
 
 function connectToBroker() {
+  // Connexion au port 61614 (WebSocket par défaut d'ActiveMQ)
   const socket = new WebSocket("ws://localhost:61614/stomp", "stomp");
-
   stompClient = Stomp.over(socket);
-  stompClient.debug = () => {};
-  stompClient.connect(
-    "admin",
-    "admin",
-    onConnected,
-    onError
-  );
+  stompClient.debug = () => {}; // Désactiver le debug verbeux
+  stompClient.connect("admin", "admin", onConnected, onError);
 }
-
 
 function onConnected() {
   console.log("[NotifFront] Connecté au broker STOMP");
-  setupTopicCheckboxes();
+
+  // --- LOGIQUE INTELLIGENTE ---
+
+  // 1. Récupérer les préférences stockées depuis l'accueil
+  const savedPrefs = localStorage.getItem("notificationPrefs");
+  let prefs = null;
+  if (savedPrefs) {
+    prefs = JSON.parse(savedPrefs);
+  }
+
+  // 2. S'abonner selon les préférences (Priorité)
+  if (prefs) {
+    console.log("[NotifFront] Chargement des préférences utilisateur :", prefs);
+    for (const [topic, isChecked] of Object.entries(prefs)) {
+      if (isChecked) {
+        subscribeTopic(topic);
+      }
+    }
+  }
+
+  // 3. Gestion des cases à cocher (si elles sont présentes sur la page, ex: Accueil)
+  const checkboxes = document.querySelectorAll(".notif-topic");
+  checkboxes.forEach((cb) => {
+    const topicName = cb.dataset.topic;
+
+    // Si on a des prefs, on met à jour l'état visuel de la case
+    if (prefs && prefs[topicName] !== undefined) {
+      cb.checked = prefs[topicName];
+    }
+    // Si pas de prefs et pas encore abonné, on s'abonne si c'est coché par défaut dans le HTML
+    else if (cb.checked && !activeSubscriptions.has(topicName)) {
+      subscribeTopic(topicName);
+    }
+
+    // Écouteur pour changement dynamique (si l'utilisateur change d'avis sur l'accueil)
+    cb.addEventListener("change", () => {
+      if (cb.checked) subscribeTopic(topicName);
+      else unsubscribeTopic(topicName);
+    });
+  });
 }
 
 function onError(error) {
   console.error("[NotifFront] Erreur STOMP:", error);
 }
 
-function setupTopicCheckboxes() {
-  const checkboxes = document.querySelectorAll(".notif-topic");
-  checkboxes.forEach(cb => {
-    cb.addEventListener("change", () => {
-      const topicName = cb.dataset.topic;
-      if (cb.checked) {
-        subscribeTopic(topicName);
-      } else {
-        unsubscribeTopic(topicName);
-      }
-    });
-
-    if (cb.checked) {
-      subscribeTopic(cb.dataset.topic);
-    }
-  });
-}
-
 function subscribeTopic(topicName) {
-  if (!stompClient || !stompClient.connected) {
-    console.warn("[NotifFront] STOMP non connecté, impossible de s'abonner pour l'instant.");
-    return;
-  }
-
-  if (activeSubscriptions.has(topicName)) {
-    return; // déjà abonné
-  }
+  if (activeSubscriptions.has(topicName)) return; // Déjà abonné
 
   const destination = "/topic/" + topicName;
+
+  if (!stompClient || !stompClient.connected) return;
 
   const sub = stompClient.subscribe(destination, (msg) => {
     try {
@@ -65,12 +75,12 @@ function subscribeTopic(topicName) {
       displayNotification(payload);
       updateMapOverlay(payload);
     } catch (e) {
-      console.error("[NotifFront] Erreur parsing message:", e, msg.body);
+      console.error(e);
     }
   });
 
   activeSubscriptions.set(topicName, sub);
-  console.log("[NotifFront] Abonné au topic:", destination);
+  console.log("[NotifFront] Abonné :", topicName);
 }
 
 function unsubscribeTopic(topicName) {
@@ -78,78 +88,59 @@ function unsubscribeTopic(topicName) {
   if (sub) {
     sub.unsubscribe();
     activeSubscriptions.delete(topicName);
-    console.log("[NotifFront] Désabonné du topic:", topicName);
+    console.log("[NotifFront] Désabonné :", topicName);
   }
 }
 
 function displayNotification(payload) {
+  // On cherche le conteneur. S'il n'existe pas (page sans notifs), on ne fait rien.
   const container = document.getElementById("notifications-stream");
   if (!container) return;
 
   const severity = (payload.severity || "LOW").toUpperCase();
-
   const div = document.createElement("div");
   div.className = "notif notif-" + severity.toLowerCase();
-
   div.innerHTML = `
     <div class="notif-header">
       <span class="notif-topic">${payload.topic}</span>
       <span class="notif-severity">${severity}</span>
-      <span class="notif-time">${payload.timestamp || ""}</span>
     </div>
     <div class="notif-message">${payload.message}</div>
   `;
-
   container.prepend(div);
+
+  // Limite à 5 notifications visibles pour ne pas polluer
+  if (container.children.length > 5) {
+    container.lastChild.remove();
+  }
 }
 
-/* ============================
-   OVERLAYS LEAFLET SUR LA MAP
-   ============================ */
-
+// --- GESTION CARTE LEAFLET ---
 let meteoMarker = null;
 let airQualityCircle = null;
 let pollutionCircle = null;
 
 function updateMapOverlay(payload) {
-  if (!window.map || typeof L === "undefined") {
-    // pas sur la page avec carte
-    return;
-  }
+  // Vérifie que la carte existe (window.map est défini dans itineraire.js)
+  if (!window.map || typeof L === "undefined") return;
 
   const topic = payload.topic;
   const severity = (payload.severity || "LOW").toUpperCase();
-  const center = window.map.getCenter();
+  const center = window.map.getCenter(); // On affiche au centre de la vue actuelle
 
-  if (topic === "meteo") {
-    updateMeteoMarker(center, severity);
-  } else if (topic === "airquality") {
-    updateAirQualityCircle(center, severity);
-  } else if (topic === "pollution") {
-    updatePollutionCircle(center, severity);
-  }
+  if (topic === "meteo") updateMeteoMarker(center, severity);
+  else if (topic === "airquality") updateAirQualityCircle(center, severity);
+  else if (topic === "pollution") updatePollutionCircle(center, severity);
 }
 
-// météo → icône soleil / nuage / pluie
 function updateMeteoMarker(center, severity) {
-  let iconChar;
-  switch (severity) {
-    case "HIGH":
-      iconChar = "🌧"; // grosse pluie
-      break;
-    case "MEDIUM":
-      iconChar = "⛅"; // nuageux
-      break;
-    default:
-      iconChar = "☀️"; // soleil
-      break;
-  }
-
+  let iconChar =
+    severity === "HIGH" ? "🌧" : severity === "MEDIUM" ? "⛅" : "☀️";
   const icon = L.divIcon({
     className: "meteo-icon",
-    html: `<span style="font-size: 24px;">${iconChar}</span>`,
+    html: `<span style="font-size: 30px;">${iconChar}</span>`,
     iconSize: [30, 30],
-    iconAnchor: [15, 15]
+    iconAnchor: [15, 15],
   });
 
   if (meteoMarker) {
@@ -160,75 +151,42 @@ function updateMeteoMarker(center, severity) {
   }
 }
 
-// qualité de l'air → cercle coloré vert / orange / rouge
 function updateAirQualityCircle(center, severity) {
-  let color;
-  switch (severity) {
-    case "HIGH":
-      color = "#c0392b"; // rouge
-      break;
-    case "MEDIUM":
-      color = "#e67e22"; // orange
-      break;
-    default:
-      color = "#27ae60"; // vert
-      break;
-  }
-
-  const radius = 1500; // en mètres, adapte si tu veux
-
+  let color =
+    severity === "HIGH"
+      ? "#c0392b"
+      : severity === "MEDIUM"
+      ? "#e67e22"
+      : "#27ae60";
   if (airQualityCircle) {
     airQualityCircle.setLatLng(center);
-    airQualityCircle.setStyle({
-      color,
-      fillColor: color
-    });
-    airQualityCircle.setRadius(radius);
+    airQualityCircle.setStyle({ color, fillColor: color });
   } else {
     airQualityCircle = L.circle(center, {
-      radius,
+      radius: 1500,
       color,
       fillColor: color,
-      fillOpacity: 0.25
+      fillOpacity: 0.25,
     }).addTo(window.map);
   }
 }
 
-// pollution → autre cercle autour (plus grand)
 function updatePollutionCircle(center, severity) {
-  let color;
-  switch (severity) {
-    case "HIGH":
-      color = "#8e44ad"; // violet foncé
-      break;
-    case "MEDIUM":
-      color = "#9b59b6";
-      break;
-    default:
-      color = "#bdc3c7";
-      break;
-  }
-
-  const radius = 2500;
-
+  let color =
+    severity === "HIGH"
+      ? "#8e44ad"
+      : severity === "MEDIUM"
+      ? "#9b59b6"
+      : "#bdc3c7";
   if (pollutionCircle) {
     pollutionCircle.setLatLng(center);
-    pollutionCircle.setStyle({
-      color,
-      fillColor: color
-    });
-    pollutionCircle.setRadius(radius);
+    pollutionCircle.setStyle({ color, fillColor: color });
   } else {
     pollutionCircle = L.circle(center, {
-      radius,
+      radius: 2500,
       color,
       fillColor: color,
-      fillOpacity: 0.2
+      fillOpacity: 0.2,
     }).addTo(window.map);
   }
 }
-
-// démarrage
-document.addEventListener("DOMContentLoaded", () => {
-  connectToBroker();
-});

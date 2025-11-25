@@ -8,7 +8,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // --- NOUVEAU : Initialisation de la carte ---
   // On crée la carte dans la div id="mapid"
   // On la centre sur Lyon ([45.76, 4.83]) avec un zoom de 13 pour tester
-  const map = L.map("mapid").setView([45.76, 4.83], 13);
+  window.map = L.map("mapid").setView([45.76, 4.83], 13);
 
   window.map = map;
   // On ajoute les "tuiles" (le fond de carte) OpenStreetMap

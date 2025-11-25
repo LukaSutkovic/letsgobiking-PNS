@@ -10,25 +10,37 @@ namespace NotifService
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("[NotifService] Demarrage du service de notifications...");
+            Console.WriteLine("[NotifService] Démarrage du service de notifications...");
 
-            // ActiveMQ "classique" sur 61616
-            string brokerUri = "tcp://localhost:61616";
+            // Utilisation de 127.0.0.1 pour éviter les problèmes IPv6
+            string brokerUri = "tcp://127.0.0.1:61616";
             string username = "admin";
             string password = "admin";
 
-            string[] topics = new[]
-            {
-                "meteo",
-                "pollution",
-                "airquality"
-            };
-
-            // ICI : ConnectionFactory concrète de Apache.NMS.ActiveMQ 1.7.x
             IConnectionFactory factory = new ConnectionFactory(brokerUri);
+            IConnection connection = null;
 
-            using IConnection connection = factory.CreateConnection(username, password);
-            connection.Start();
+            // --- BOUCLE DE TENTATIVE DE CONNEXION (RETRY POLICY) ---
+            while (true)
+            {
+                try
+                {
+                    Console.Write("Tentative de connexion à ActiveMQ... ");
+                    connection = factory.CreateConnection(username, password);
+                    connection.Start();
+                    Console.WriteLine("✅ CONNECTÉ !");
+                    break; // On sort de la boucle si ça marche
+                }
+                catch (Exception)
+                {
+                    Console.WriteLine("❌ Échec.");
+                    Console.WriteLine("ActiveMQ n'est pas encore prêt. Nouvelle tentative dans 3 secondes...");
+                    Thread.Sleep(3000);
+                }
+            }
+            // -------------------------------------------------------
+
+            string[] topics = new[] { "meteo", "pollution", "airquality" };
 
             using ISession session = connection.CreateSession(AcknowledgementMode.AutoAcknowledge);
 
@@ -42,29 +54,39 @@ namespace NotifService
 
             var rand = new Random();
 
+            Console.WriteLine("Envoi des notifications en cours (Ctrl+C pour arrêter)...");
+
             while (true)
             {
-                var (topicName, producer) = producers[rand.Next(producers.Length)];
-
-                var payload = new
+                try 
                 {
-                    topic = topicName,
-                    severity = PickSeverity(rand),
-                    message = BuildMessage(topicName, rand),
-                    timestamp = DateTime.UtcNow.ToString("O")
-                };
+                    var (topicName, producer) = producers[rand.Next(producers.Length)];
 
-                string json = JsonSerializer.Serialize(payload);
-                ITextMessage msg = session.CreateTextMessage(json);
+                    var payload = new
+                    {
+                        topic = topicName,
+                        severity = PickSeverity(rand),
+                        message = BuildMessage(topicName, rand),
+                        timestamp = DateTime.UtcNow.ToString("O")
+                    };
 
-                msg.Properties["topic"] = topicName;
-                msg.Properties["severity"] = payload.severity;
+                    string json = JsonSerializer.Serialize(payload);
+                    ITextMessage msg = session.CreateTextMessage(json);
 
-                producer.Send(msg);
+                    msg.Properties["topic"] = topicName;
+                    msg.Properties["severity"] = payload.severity;
 
-                Console.WriteLine($"[NotifService] Sent to '{topicName}': {json}");
+                    producer.Send(msg);
 
-                Thread.Sleep(TimeSpan.FromSeconds(5));
+                    Console.WriteLine($"[>>] Sent to '{topicName}': {payload.severity}");
+                    Thread.Sleep(TimeSpan.FromSeconds(5));
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Erreur lors de l'envoi : {ex.Message}");
+                    // Si la connexion est perdue, on pourrait vouloir redémarrer la boucle de connexion ici
+                    break; 
+                }
             }
         }
 
@@ -84,7 +106,7 @@ namespace NotifService
             {
                 "meteo" => "Averse prévue dans les 30 prochaines minutes",
                 "pollution" => "Pic de pollution dans la zone actuelle",
-                "airquality" => "Qualité de l'air dégradée, évitez l'effort intense",
+                "airquality" => "Qualité de l'air dégradée",
                 _ => "Notification generique"
             };
         }
