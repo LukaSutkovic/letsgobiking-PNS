@@ -89,7 +89,7 @@ Si nécessaire, les services peuvent être lancés individuellement :
 
 - **ActiveMQ :**
   ```bash
-  ActiveMQ/bin/activemq start
+  apache-activemq-5.19.1-bin/apache-activemq-5.19.1/bin/activemq start
   ```
 - **RoutingService :**
   ```bash
